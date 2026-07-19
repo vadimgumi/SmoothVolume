@@ -3,13 +3,13 @@ package com.example.smoothvolume
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.IBinder
 import android.provider.Settings
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import rikka.shizuku.Shizuku
-import java.io.BufferedReader
-import java.io.InputStreamReader
+import rikka.shizuku.ShizukuBinderWrapper
 
 class MainActivity : Activity() {
 
@@ -50,31 +50,34 @@ class MainActivity : Activity() {
         grantCaptureAudioOutput()
     }
 
-    /**
-     * Выполняем "pm grant <package> android.permission.CAPTURE_AUDIO_OUTPUT"
-     * от имени shell через Shizuku.newProcess — именно так это делает RootlessJamesDSP.
-     * На части сборок shell-идентификатору разрешено выдавать это permission,
-     * т.к. исторически оно использовалось для отладки/тестирования (adb).
-     * Если производитель прошивки закрыл эту лазейку — команда завершится с ошибкой,
-     * и тогда без root этот путь не сработает.
-     */
     private fun grantCaptureAudioOutput() {
         try {
-            val cmd = arrayOf(
-                "pm", "grant", packageName, "android.permission.CAPTURE_AUDIO_OUTPUT"
-            )
-            val process = Shizuku.newProcess(cmd, null, null)
-            val output = BufferedReader(InputStreamReader(process.inputStream)).readText()
-            val error = BufferedReader(InputStreamReader(process.errorStream)).readText()
-            process.waitFor()
+            val serviceManagerClass = Class.forName("android.os.ServiceManager")
+            val getServiceMethod = serviceManagerClass.getMethod("getService", String::class.java)
+            val rawBinder = getServiceMethod.invoke(null, "package") as IBinder
 
-            status.text = if (error.isBlank()) {
-                "Разрешение выдано. Теперь включи Accessibility-сервис и перезапусти его."
-            } else {
-                "Ошибка: $error"
-            }
+            val wrappedBinder: IBinder = ShizukuBinderWrapper(rawBinder)
+
+            val iPackageManagerStub = Class.forName("android.content.pm.IPackageManager\$Stub")
+            val asInterfaceMethod = iPackageManagerStub.getMethod("asInterface", IBinder::class.java)
+            val packageManager = asInterfaceMethod.invoke(null, wrappedBinder)
+
+            val grantMethod = packageManager.javaClass.getMethod(
+                "grantRuntimePermission",
+                String::class.java,
+                String::class.java,
+                Int::class.javaPrimitiveType
+            )
+            grantMethod.invoke(
+                packageManager,
+                packageName,
+                "android.permission.CAPTURE_AUDIO_OUTPUT",
+                0
+            )
+
+            status.text = "Разрешение выдано. Теперь включи Accessibility-сервис и перезапусти его."
         } catch (e: Exception) {
-            status.text = "Не удалось выполнить pm grant: ${e.message}"
+            status.text = "Ошибка: ${e.message}"
         }
     }
 }
