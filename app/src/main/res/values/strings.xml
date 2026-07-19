@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Smooth Volume</string>
+    <string name="accessibility_service_description">
+        Перехватывает кнопки громкости и добавляет плавные промежуточные шаги
+        поверх системных 15 уровней громкости.
+    </string>
+</resources>

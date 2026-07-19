@@ -1,0 +1,27 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.example.smoothvolume'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.example.smoothvolume"
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildFeatures {
+        // отключаем viewBinding/compose — не нужны для этого минимального каркаса
+    }
+}
+
+dependencies {
+    implementation 'rikka.shizuku:api:13.1.5'
+    implementation 'rikka.shizuku:provider:13.1.5'
+    implementation 'androidx.core:core-ktx:1.13.1'
+}
