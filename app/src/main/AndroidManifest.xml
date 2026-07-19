@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.smoothvolume">
 
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-    <!-- Обычным способом система не даст это разрешение стороннему приложению,
-         его выдаёт себе сам apk через Shizuku (shell UID) при первом запуске -->
     <uses-permission android:name="android.permission.CAPTURE_AUDIO_OUTPUT"
         tools:ignore="ProtectedPermissions" />
 
     <application
         android:allowBackup="false"
         android:label="Smooth Volume"
-        android:icon="@mipmap/ic_launcher"
         android:theme="@android:style/Theme.Material.Light">
 
         <activity
@@ -35,8 +33,6 @@
                 android:resource="@xml/accessibility_service_config" />
         </service>
 
-        <!-- Shizuku user service: этот же apk запускается от имени shell/root,
-             чтобы выполнять privileged-вызовы (pm grant и т.п.) -->
         <provider
             android:name="rikka.shizuku.ShizukuProvider"
             android:authorities="${applicationId}.shizuku"
